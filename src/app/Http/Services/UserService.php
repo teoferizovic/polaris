@@ -3,6 +3,7 @@
 namespace App\Http\Services;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -66,5 +67,21 @@ class UserService
         
         return ['image' => $image, 'imageType' => $imageType];
     
+    }
+
+    public function loginUser(array $input) {
+
+        if (!Auth::attempt($input)) {
+            return null;
+        }
+
+        $user = User::where('email', $input['email'])->first();
+        $user->token = $user->createToken('auth_token')->plainTextToken;
+
+        return $user;
+    }
+
+    public function logoutUser(User $user) {
+        return $user->currentAccessToken()->delete();
     }
 }

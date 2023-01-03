@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\StoreImageRequest;
+use App\Http\Requests\LoginUserRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Services\UserService;
 
@@ -23,22 +23,20 @@ class AuthController extends Controller
 	public function index(User $user = null) {
         
         if ($user) {
-        	return UserResource::collection(collect([$user]));
+        	return $user;
         }
 
         $users = $this->userService->getAllUsers();
 
-        return UserResource::collection($users);
+        return $users;
     }
 
 	public function create(StoreUserRequest $request) {
 		
         $user = $this->userService->createNewUser($request);
+        $user->token = $user->createToken("auth_token")->plainTextToken;
 
-        return response()->json([
-                'user' => $user,
-                'token' => $user->createToken("auth_token")->plainTextToken
-        ], 201);
+        return $user;
 
     }
 
@@ -46,36 +44,27 @@ class AuthController extends Controller
         
         $this->userService->updateUser($user, $request);
         
-        return response()->json([
-	        'message' => 'Current User Updated !',
-	    ]);
+        return $user;
     }
 
-    public function login(Request $request) {
+    public function login(LoginUserRequest $request) {
     	
-    	$credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+	    $user = $this->userService->loginUser($request->all());
 
-	    if (!Auth::attempt($credentials)) {
-	        return response()->json([
-	            'message' => 'Invalid login details'
-	        ], 401);
-	    }
-
-	    $user = User::where('email', $request['email'])->first();
-	    $token = $user->createToken('auth_token')->plainTextToken;
-
+        if (empty($user)) {
+            return response()->json([
+                'message' => 'Invalid login details'
+            ], 401); 
+        }
+       
 	    return response()->json([
-	        'access_token' => $token,
-	        'token_type' => 'Bearer',
+	        'access_token' => $user->token,
 	    ]);
 	}
 
 	public function logout(Request $request) {
-
-		$request->user()->currentAccessToken()->delete();
+        
+        $this->userService->logoutUser($request->user());
 
 		return response()->json([
 	        'message' => 'Current User Logged Out !',

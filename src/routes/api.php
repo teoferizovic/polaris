@@ -16,16 +16,16 @@ use App\Http\Controllers\Api\AuthController;
 */
 
 Route::group(['prefix' => 'users'], function () {
-    Route::post('/register', [AuthController::class, 'create']);
+    Route::post('/', [AuthController::class, 'create']);
 	Route::post('/login', [AuthController::class, 'login']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
 	Route::group(['prefix' => 'users'], function () {
-		Route::get('/index/{user?}', [AuthController::class, 'index']);
+		Route::get('/{user?}', [AuthController::class, 'index']);
 	    Route::put('/logout', [AuthController::class, 'logout']);
-	    Route::put('/update/{user}', [AuthController::class, 'update']);
-	    Route::delete('/delete/{user}', [AuthController::class, 'delete']);
+	    Route::put('/{user}', [AuthController::class, 'update']);
+	    Route::delete('/{user}', [AuthController::class, 'delete']);
 	    Route::post('/image/', [AuthController::class, 'uploadImage']);
 	    Route::get('/image/{user}', [AuthController::class, 'image']);
     });
