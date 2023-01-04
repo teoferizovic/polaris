@@ -5,45 +5,72 @@ namespace App\Http\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
-use App\Http\Requests\StoreImageRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class UserService
 {
-    
+    /**
+     * Function to get all users.
+     *
+     * @return EloquentCollection
+     * 
+     */
     public function getAllUsers() : EloquentCollection {
         return User::all();
     }
 
-    public function createNewUser(StoreUserRequest $request) : User {
+    /**
+     * Function to create new user.
+     *
+     * @param Array $input
+     * 
+     * @return User
+     * 
+     */
+    public function createNewUser(array $input) : User {
         
         $user = User::create([
-            'name' => $request->name,
-            'last_name' => $request->last_name,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $input['name'],
+            'last_name' => $input['last_name'],
+            'phone' => $input['phone'],
+            'email' => $input['email'],
+            'password' => Hash::make($input['password']),
         ]);
 
         return $user;
     }
 
-    public function updateUser(User $user, UpdateUserRequest $request) : User {
+    /**
+     * Function to update user.
+     *
+     * @param User $user
+     * @param Array $input
+     * 
+     * @return User
+     * 
+     */
+    public function updateUser(User $user, array $input) : User {
 
-        $user->name = ($request->name) ? $request->name : $user->name;  
-        $user->last_name = ($request->last_name) ? $request->last_name : $user->last_name;
-        $user->phone = ($request->phone) ? $request->phone : $user->phone;
-        $user->email = ($request->email) ? $request->email : $user->email;
-        $user->password = ($request->password) ? Hash::make($request->password) : $user->password;
+        $user->name = ($input['name']) ? $input['name'] : $user->name;  
+        $user->last_name = ($input['last_name']) ? $input['last_name'] : $user->last_name;
+        $user->phone = ($input['phone']) ? $input['phone'] : $user->phone;
+        $user->email = ($input['email']) ? $input['email'] : $user->email;
+        $user->password = ($input['password']) ? Hash::make($input['password']) : $user->password;
 
         $user->save();
 
         return $user;
     }
 
+    /**
+     * Function to delete user.
+     *
+     * @param User $user
+     * 
+     * @return Bool
+     * 
+     */
     public function deleteUser(User $user) : bool {
 
         $user->tokens()->delete();
@@ -51,16 +78,32 @@ class UserService
 
     }
 
-    public function uploadImage(StoreImageRequest $request) : User {
+    /**
+     * Function to upload image.
+     *
+     * @param Array $input
+     * 
+     * @return User
+     * 
+     */
+    public function uploadImage(array $input) : User {
 
-        $user = User::where('id', $request->user_id)->first();
-        $user->image_path = $request->file('image')->store('image', 'public');
+        $user = User::where('id', $input['user_id'])->first();
+        $user->image_path = $input['image']->store('image', 'public');
         $user->save();
 
         return $user;
     
     }
 
+    /**
+     * Function to show image.
+     *
+     * @param User $user
+     * 
+     * @return Array
+     * 
+     */
     public function showImage(User $user) : array {
         
         $image = Storage::get('public/'.$user->image_path);
@@ -74,6 +117,14 @@ class UserService
     
     }
 
+    /**
+     * Function to login user.
+     *
+     * @param Array $input
+     * 
+     * @return String
+     * 
+     */
     public function loginUser(array $input) : string {
 
         if (!Auth::attempt($input)) {
@@ -85,6 +136,14 @@ class UserService
         return $user->createToken('auth_token')->plainTextToken;
     }
 
+    /**
+     * Function to logout user.
+     *
+     * @param User $user
+     * 
+     * @return Bool
+     * 
+     */
     public function logoutUser(User $user) : bool {
         return $user->currentAccessToken()->delete();
     }

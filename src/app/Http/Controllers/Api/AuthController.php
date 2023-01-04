@@ -22,6 +22,14 @@ class AuthController extends Controller
         $this->userService = $userService;
     }
 
+    /**
+     * Function to show all users.
+     *
+     * @param User || null $user
+     * 
+     * @return EloquentCollection | User
+     * 
+     */
 	public function index(User $user = null) : EloquentCollection | User {
         
         if ($user) {
@@ -33,22 +41,47 @@ class AuthController extends Controller
         return $users;
     }
 
+    /**
+     * Function to create new user.
+     *
+     * @param StoreUserRequest $request
+     * 
+     * @return User
+     * 
+     */
 	public function create(StoreUserRequest $request) : User {
 		
-        $user = $this->userService->createNewUser($request);
+        $user = $this->userService->createNewUser($request->all());
         $user->token = $user->createToken("auth_token")->plainTextToken;
 
         return $user;
 
     }
 
+    /**
+     * Function to update user.
+     *
+     * @param UpdateUserRequest $request
+     * @param User $user
+     * 
+     * @return User
+     * 
+     */
     public function update(UpdateUserRequest $request, User $user) : User {
         
-        $user = $this->userService->updateUser($user, $request);
+        $user = $this->userService->updateUser($user, $request->all());
         
         return $user;
     }
 
+    /**
+     * Function to login user.
+     *
+     * @param LoginUserRequest $request
+     * 
+     * @return JsonResponse
+     * 
+     */
     public function login(LoginUserRequest $request) : JsonResponse {
     	
 	    $userToken = $this->userService->loginUser($request->all());
@@ -64,6 +97,14 @@ class AuthController extends Controller
 	    ]);
 	}
 
+    /**
+     * Function to logout user.
+     *
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     * 
+     */
 	public function logout(Request $request) : JsonResponse {
         
         $this->userService->logoutUser($request->user());
@@ -74,6 +115,14 @@ class AuthController extends Controller
 
 	}
 
+    /**
+     * Function to delete user.
+     *
+     * @param User $user
+     * 
+     * @return JsonResponse
+     * 
+     */
     public function delete(User $user) : JsonResponse {
         
         $this->userService->deleteUser($user);
@@ -83,15 +132,31 @@ class AuthController extends Controller
 	    ]);
     }
 
+    /**
+     * Function to upload image.
+     *
+     * @param StoreImageRequest $request
+     * 
+     * @return JsonResponse
+     * 
+     */
     public function uploadImage(StoreImageRequest $request) : JsonResponse {
 
-    	$this->userService->uploadImage($request);
+    	$this->userService->uploadImage($request->all());
     	
     	return response()->json([
 	        'message' => 'Successfully Image uploaded!',
 	    ]);
     }
 
+    /**
+     * Function to upload image.
+     *
+     * @param User $user
+     * 
+     * @return JsonResponse | Response
+     * 
+     */
     public function image(User $user) : JsonResponse  | Response {
         
         $file = $this->userService->showImage($user);
