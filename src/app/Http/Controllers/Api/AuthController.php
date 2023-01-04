@@ -9,8 +9,10 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\StoreImageRequest;
 use App\Http\Requests\LoginUserRequest;
-use App\Http\Resources\UserResource;
 use App\Http\Services\UserService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class AuthController extends Controller
 {
@@ -20,7 +22,7 @@ class AuthController extends Controller
         $this->userService = $userService;
     }
 
-	public function index(User $user = null) {
+	public function index(User $user = null) : EloquentCollection | User {
         
         if ($user) {
         	return $user;
@@ -31,7 +33,7 @@ class AuthController extends Controller
         return $users;
     }
 
-	public function create(StoreUserRequest $request) {
+	public function create(StoreUserRequest $request) : User {
 		
         $user = $this->userService->createNewUser($request);
         $user->token = $user->createToken("auth_token")->plainTextToken;
@@ -40,29 +42,29 @@ class AuthController extends Controller
 
     }
 
-    public function update(UpdateUserRequest $request, User $user) {
+    public function update(UpdateUserRequest $request, User $user) : User {
         
-        $this->userService->updateUser($user, $request);
+        $user = $this->userService->updateUser($user, $request);
         
         return $user;
     }
 
-    public function login(LoginUserRequest $request) {
+    public function login(LoginUserRequest $request) : JsonResponse {
     	
-	    $user = $this->userService->loginUser($request->all());
+	    $userToken = $this->userService->loginUser($request->all());
 
-        if (empty($user)) {
+        if (empty($userToken)) {
             return response()->json([
                 'message' => 'Invalid login details'
             ], 401); 
         }
        
 	    return response()->json([
-	        'access_token' => $user->token,
+	        'access_token' => $userToken,
 	    ]);
 	}
 
-	public function logout(Request $request) {
+	public function logout(Request $request) : JsonResponse {
         
         $this->userService->logoutUser($request->user());
 
@@ -72,7 +74,7 @@ class AuthController extends Controller
 
 	}
 
-    public function delete(User $user) {
+    public function delete(User $user) : JsonResponse {
         
         $this->userService->deleteUser($user);
 
@@ -81,7 +83,7 @@ class AuthController extends Controller
 	    ]);
     }
 
-    public function uploadImage(StoreImageRequest $request) {
+    public function uploadImage(StoreImageRequest $request) : JsonResponse {
 
     	$this->userService->uploadImage($request);
     	
@@ -90,7 +92,7 @@ class AuthController extends Controller
 	    ]);
     }
 
-    public function image(User $user) {
+    public function image(User $user) : JsonResponse  | Response {
         
         $file = $this->userService->showImage($user);
 
