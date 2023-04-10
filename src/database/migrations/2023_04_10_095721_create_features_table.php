@@ -18,6 +18,8 @@ class CreateFeaturesTable extends Migration
             $table->string('name');
             $table->timestamps();
         });
+
+        Artisan::call('db:seed', array('--class' => 'FeatureSeeder'));
     }
 
     /**

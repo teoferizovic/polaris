@@ -25,6 +25,8 @@ class CreateFeaturePermissionsTable extends Migration
             $table->boolean('delete_data');
             $table->timestamps();
         });
+
+        Artisan::call('db:seed', array('--class' => 'FeaturePermissionSeeder'));
     }
 
     /**
