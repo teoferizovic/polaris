@@ -125,15 +125,15 @@ class UserService
      * @return String
      * 
      */
-    public function loginUser(array $input) : string {
+    public function loginUser(array $input) : ?User  {
 
         if (!Auth::attempt($input)) {
-            return '';
+            return null;
         }
 
-        $user = User::where('email', $input['email'])->first();
+        $user = User::with('userRole.featurePermissions')->where('email', $input['email'])->first();
 
-        return $user->createToken('auth_token')->plainTextToken;
+        return $user;
     }
 
     /**

@@ -13,6 +13,7 @@ use App\Http\Services\UserService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use App\Http\Resources\FeaturePermissionResource;
 
 class AuthController extends Controller
 {
@@ -84,16 +85,17 @@ class AuthController extends Controller
      */
     public function login(LoginUserRequest $request) : JsonResponse {
     	
-	    $userToken = $this->userService->loginUser($request->all());
+	    $user = $this->userService->loginUser($request->all());
 
-        if (empty($userToken)) {
+        if (empty($user)) {
             return response()->json([
                 'message' => 'Invalid login details'
             ], 401); 
         }
        
 	    return response()->json([
-	        'access_token' => $userToken,
+	        'access_token' => $user->createToken('auth_token')->plainTextToken,
+            'permissions' => FeaturePermissionResource::collection($user->userRole->featurePermissions),
 	    ]);
 	}
 
