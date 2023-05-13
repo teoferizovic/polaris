@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Repo\SiteRepo;
+use App\Repo\SiteRepo2;
 use Illuminate\Support\ServiceProvider;
 
 class SiteServiceProvider extends ServiceProvider
@@ -20,6 +21,10 @@ class SiteServiceProvider extends ServiceProvider
 
         $this->app->singleton(SiteRepo::class, function($app){       
             return new SiteRepo('usd');
+        });
+
+        $this->app->singleton(SiteRepo2::class, function($app){       
+            return new SiteRepo2('kk');
         });
     }
 
